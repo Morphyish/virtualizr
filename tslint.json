@@ -1,0 +1,161 @@
+{
+  "rulesDirectory": [
+    "node_modules/codelyzer"
+  ],
+  "rules": {
+    /* TSLint rules */
+    "array-type": [
+      true,
+      "array"
+    ],
+    "arrow-parens": true,
+    "align": [
+      true,
+      "parameters",
+      "arguments",
+      "statements",
+      "members",
+      "elements"
+    ],
+    "arrow-return-shorthand": [
+      true,
+      "multiline"
+    ],
+    "await-promise": true,
+    "ban-types": [
+      true,
+      [
+        "Object",
+        "Avoid using the `Object` type. Did you mean `object`?"
+      ],
+      [
+        "Function",
+        "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."
+      ],
+      [
+        "Boolean",
+        "Avoid using the `Boolean` type. Did you mean `boolean`?"
+      ],
+      [
+        "Number",
+        "Avoid using the `Number` type. Did you mean `number`?"
+      ],
+      [
+        "String",
+        "Avoid using the `String` type. Did you mean `string`?"
+      ],
+      [
+        "Symbol",
+        "Avoid using the `Symbol` type. Did you mean `symbol`?"
+      ]
+    ],
+    "class-name": true,
+    "comment-format": [
+      true,
+      "check-space"
+    ],
+    "completed-docs": true,
+    "curly": true,
+    "deprecation": true,
+    "eofline": true,
+    "forin": true,
+    "import-spacing": true,
+    "indent": [
+      true,
+      "spaces",
+      4
+    ],
+    "max-classes-per-file": [
+      true,
+      1
+    ],
+    "max-file-line-count": [
+      true,
+      1000
+    ],
+    "max-line-length": [
+      true,
+      200
+    ],
+    "member-access": [
+      true,
+      "check-accessor",
+      "check-constructor"
+    ],
+    "new-parens": true,
+    "no-eval": true,
+    "no-consecutive-blank-lines": [
+      true,
+      1
+    ],
+    "no-duplicate-super": true,
+    "no-empty": true,
+    "no-angle-bracket-type-assertion": true,
+    "no-conditional-assignment": true,
+    "triple-equals": true,
+    /* Angular */
+    "directive-selector": [
+      true,
+      "attribute",
+      "chr",
+      "camelCase"
+    ],
+    "component-selector": [
+      true,
+      "element",
+      "chr",
+      "kebab-case"
+    ],
+    "use-input-property-decorator": true,
+    "use-output-property-decorator": true,
+    "use-host-property-decorator": true,
+    "no-attribute-parameter-decorator": true,
+    "no-input-rename": true,
+    "no-output-rename": true,
+    "no-forward-ref": true,
+    "use-life-cycle-interface": true,
+    "use-pipe-transform-interface": true,
+    "component-class-suffix": [
+      true,
+      "Component"
+    ],
+    "directive-class-suffix": [
+      true,
+      "Directive"
+    ],
+    "templates-use-public": true,
+    "no-access-missing-member": true,
+    "invoke-injectable": true,
+    /* Project rules */
+    "quotemark": [
+      true,
+      "single"
+    ],
+    "import-blacklist": [
+      true,
+      "rxjs/Rx"
+    ],
+    "no-any": true,
+    "typedef": [
+      true,
+      "array-destructuring",
+      "arrow-call-signature",
+      "arrow-parameter",
+      "call-signature",
+      "member-variable-declaration",
+      "object-destructuring",
+      "parameter",
+      "property-declaration",
+      "variable-declaration"
+    ],
+    "no-magic-numbers": [
+      true,
+      -1,
+      0,
+      1,
+      2,
+      10,
+      100
+    ]
+  }
+}
