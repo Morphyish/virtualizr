@@ -3,7 +3,6 @@
     "node_modules/codelyzer"
   ],
   "rules": {
-    /* TSLint rules */
     "array-type": [
       true,
       "array"
@@ -59,6 +58,15 @@
     "deprecation": true,
     "eofline": true,
     "forin": true,
+    "import-sources-order": [
+      true,
+      {
+        "import-sources-order": "case-insensitive",
+        "grouped-imports": true,
+        "named-imports-order": "lowercase-first",
+        "module-source-path": "full"
+      }
+    ],
     "import-spacing": true,
     "indent": [
       true,
@@ -93,7 +101,6 @@
     "no-angle-bracket-type-assertion": true,
     "no-conditional-assignment": true,
     "triple-equals": true,
-    /* Angular */
     "directive-selector": [
       true,
       "attribute",
@@ -103,7 +110,7 @@
     "component-selector": [
       true,
       "element",
-      "chr",
+      "vta",
       "kebab-case"
     ],
     "use-input-property-decorator": true,
@@ -126,7 +133,6 @@
     "templates-use-public": true,
     "no-access-missing-member": true,
     "invoke-injectable": true,
-    /* Project rules */
     "quotemark": [
       true,
       "single"

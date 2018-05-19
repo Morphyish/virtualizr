@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+@import '../node_modules/normalize.css/normalize.css';
+@import '~@angular/material/theming';
+
+@include mat-core();
+
+$primary: mat-palette($mat-deep-purple);
+$accent: mat-palette($mat-amber);
+$warn: mat-palette($mat-red);
+
+$theme: mat-light-theme($primary, $accent, $warn);
+
+@include angular-material-theme($theme);
+
+.bg-primary {
+  color: white;
+  background-color: mat-color($primary);
+}
+
+.bg-accent {
+  background-color: mat-color($accent);
+}
+
+.bg-warn {
+  color: white;
+  background-color: mat-color($warn);
+}
+
+.color-primary {
+  color: mat-color($primary);
+}
+
+.color-accent {
+  color: mat-color($accent);
+}
+
+.color-warn {
+  color: mat-color($warn);
+}
+
+* {
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  height: 100vh;
+  width: 100vw;
+}
