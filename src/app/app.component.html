@@ -1,16 +1,6 @@
-<div #form class="form">
-  <mat-form-field>
-    <input matInput placeholder="Nb of lines" [(ngModel)]="nbOfLines">
-  </mat-form-field>
-  <mat-form-field>
-    <input matInput placeholder="Nb of columns" [(ngModel)]="nbOfColumns">
-  </mat-form-field>
-  <button mat-button (click)="generateData()">Start generating data</button>
-</div>
-
-<div #loading class="loading" style="display: none;">
+<div *ngIf="loading" class="loading">
   <div class="progress-bar">
-    <div #progress class="progress bg-primary"></div>
+    <div #progress class="progress bg-accent"></div>
   </div>
 
   <div class="step-wrap">
@@ -18,19 +8,28 @@
   </div>
 </div>
 
-<table *ngIf="showTable">
-  <thead>
-  <tr>
-    <th *ngFor="let value of thead">
-      {{value}}
-    </th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr *ngFor="let line of data">
-    <td *ngFor="let value of line">
-      {{value}}
-    </td>
-  </tr>
-  </tbody>
-</table>
+<div class="form">
+  <mat-form-field>
+    <input matInput placeholder="Nb of lines" [(ngModel)]="nbOfLines" [disabled]="loading">
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput placeholder="Nb of columns" [(ngModel)]="nbOfColumns" [disabled]="loading">
+  </mat-form-field>
+  <button mat-button [disabled]="loading" (click)="generateData()">Start generating data</button>
+</div>
+
+<main>
+  <table *ngIf="showTable">
+    <tbody>
+    <tr *ngFor="let line of data">
+      <td *ngFor="let value of line">
+        {{value}}
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <div class="spinner" *ngIf="loading">
+    <mat-spinner color='primary' [diameter]="50" [strokeWidth]="3"></mat-spinner>
+  </div>
+</main>

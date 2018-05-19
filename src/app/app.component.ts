@@ -7,101 +7,71 @@ import {Component, ElementRef, NgZone, ViewChild} from '@angular/core';
 })
 export class AppComponent {
 
-  @ViewChild('form') public form: ElementRef;
-  @ViewChild('loading') public loading: ElementRef;
   @ViewChild('progress') public progress: ElementRef;
   @ViewChild('step') public step: ElementRef;
 
-  public showTable: boolean = true;
+  public showTable: boolean = false;
+  public loading: boolean = false;
 
-  public thead: string[] = [];
   public data: string[][] = [];
 
   public nbOfLines: number = 1000000;
   public nbOfColumns: number = 10;
 
   private currentStep: string = '';
-  private nbOfLinesCreated: number = 0;
-  private oneThousandth: number = 0;
 
-  private charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  private dataGenerator: Worker;
+  private nextFrame: number;
 
   public constructor(private ngZone: NgZone) {
   }
 
   public generateData(): void {
-    this.showTable = false;
-    this.ngZone.runOutsideAngular(() => {
-      this.form.nativeElement.style.display = 'none';
-      this.loading.nativeElement.style.display = 'flex';
-
-      this.nbOfLinesCreated = 0;
-      this.oneThousandth = this.nbOfLines / 1000;
-      this.currentStep = 'Generating table headers...';
-      this.updateProgress(() => {
-        this.createHeaders();
+    if (!this.loading) {
+      this.showTable = false;
+      this.loading = true;
+      this.ngZone.runOutsideAngular(() => {
+        this.dataGenerator = new Worker('assets/worker/data-generator.js');
+        this.dataGenerator.onmessage = (message: MessageEvent): void => {
+          switch (message.data.context) {
+            case 'update':
+              this.updateProgress(message.data.progress);
+              break;
+            case 'done':
+              this.closeGenerator();
+              break;
+            case 'error':
+              this.closeGenerator();
+              break;
+            default:
+              this.closeGenerator();
+              break;
+          }
+        };
+        this.dataGenerator.postMessage({'nbOfLines': this.nbOfLines, 'nbOfColumns': this.nbOfColumns});
       });
-    });
-  }
-
-  private createHeaders(): void {
-    let i: number = 0;
-    for (; i < this.nbOfColumns; i++) {
-      this.thead.push(this.generateRandomData());
     }
+  }
 
-    this.currentStep = 'Filling table with randomly generated data...';
-    this.updateProgress(() => {
-      this.fillTab();
+  private closeGenerator(): void {
+    this.ngZone.run(() => {
+      this.loading = false;
+      this.dataGenerator.terminate();
     });
   }
 
-  private fillTab(): void {
-    let j: number;
-    for (; this.nbOfLinesCreated < this.nbOfLines; this.nbOfLinesCreated++) {
-      j = 0;
-      this.data.push([]);
-      for (; j < this.nbOfColumns; j++) {
-        this.data[this.nbOfLinesCreated].push(this.generateRandomData());
-      }
-      if (this.nbOfLinesCreated > 0 && (this.nbOfLinesCreated % this.oneThousandth) === 0) {
-        this.updateProgress(this.fillTabCallback.bind(this));
-        return;
-      }
+  private updateProgress(progress: number): void {
+    if (this.nextFrame) {
+      cancelAnimationFrame(this.nextFrame);
     }
-
-    this.updateProgress(() => {
-      this.form.nativeElement.style.display = 'block';
-      this.loading.nativeElement.style.display = 'none';
-    });
+    this.nextFrame = requestAnimationFrame(this.frameUpdate.bind(this, progress));
   }
 
-  private fillTabCallback(): void {
-    this.nbOfLinesCreated++;
-    this.fillTab();
-  }
-
-  private updateProgress(callback?: () => void): void {
-    requestAnimationFrame(() => {
-      const progress: number = Math.round(this.nbOfLinesCreated / (this.nbOfLines + 1) * 100);
+  private frameUpdate(progress: number): void {
+    delete this.nextFrame;
+    if (this.loading) {
       this.progress.nativeElement.style.width = progress + '%';
       this.step.nativeElement.textContent = this.currentStep;
-
-      if (callback) {
-        callback();
-      }
-    });
-  }
-
-  private generateRandomData(): string {
-    let text: string = '';
-    const charsetLength: number = this.charset.length;
-
-    let i: number = 0;
-    for (; i < 10; i++) {
-      text += this.charset[Math.floor(Math.random() * charsetLength)];
     }
-
-    return text;
   }
 }
