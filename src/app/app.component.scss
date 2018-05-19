@@ -1,0 +1,39 @@
+.form {
+  padding: 1rem 2rem;
+
+  mat-form-field + mat-form-field,
+  mat-form-field + button {
+    margin-left: 1rem;
+  }
+}
+
+.loading {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+
+  .progress-bar {
+    display: flex;
+    height: .375rem;
+    overflow: hidden;
+    background-color: #dddddd;
+
+    .progress {
+      opacity: 1;
+      width: 0;
+      transition: width .6s ease;
+    }
+  }
+
+  .step-wrap {
+    flex: 1 0 1px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .step {
+      text-align: center;
+    }
+  }
+}
