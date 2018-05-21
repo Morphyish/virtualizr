@@ -9,6 +9,7 @@ self.addEventListener(
     for (; i < $message.data.nbOfLines; i++) {
       j = 0;
       datas.push([]);
+      datas[i].push(i);
       for (; j < $message.data.nbOfColumns; j++) {
         datas[i].push(generateRandomData());
       }
@@ -18,7 +19,7 @@ self.addEventListener(
       }
     }
 
-    postMessage({context: 'done', result: datas});
+    postMessage({context: 'done', progress: 100, result: datas});
   }
 );
 
