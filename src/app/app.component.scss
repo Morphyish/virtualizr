@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 
   .form {
     padding: 1rem 2rem;
@@ -31,17 +32,6 @@
       .progress {
         opacity: 1;
         width: 0;
-      }
-    }
-
-    .step-wrap {
-      flex: 1 0 1px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-
-      .step {
-        text-align: center;
       }
     }
   }

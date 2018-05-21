@@ -1,4 +1,4 @@
-import {Component, ElementRef, NgZone, ViewChild} from '@angular/core';
+import {Component, ElementRef, ViewChild} from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -8,56 +8,60 @@ import {Component, ElementRef, NgZone, ViewChild} from '@angular/core';
 export class AppComponent {
 
   @ViewChild('progress') public progress: ElementRef;
-  @ViewChild('step') public step: ElementRef;
 
   public showTable: boolean = false;
   public loading: boolean = false;
 
   public data: string[][] = [];
 
-  public nbOfLines: number = 1000000;
-  public nbOfColumns: number = 10;
-
-  private currentStep: string = '';
+  public nbOfLines: number = 100;
+  public nbOfColumns: number = 20;
+  public scrollPosition: number = 5;
 
   private dataGenerator: Worker;
   private nextFrame: number;
-
-  public constructor(private ngZone: NgZone) {
-  }
 
   public generateData(): void {
     if (!this.loading) {
       this.showTable = false;
       this.loading = true;
-      this.ngZone.runOutsideAngular(() => {
-        this.dataGenerator = new Worker('assets/worker/data-generator.js');
-        this.dataGenerator.onmessage = (message: MessageEvent): void => {
-          switch (message.data.context) {
-            case 'update':
-              this.updateProgress(message.data.progress);
-              break;
-            case 'done':
-              this.closeGenerator();
-              break;
-            case 'error':
-              this.closeGenerator();
-              break;
-            default:
-              this.closeGenerator();
-              break;
-          }
-        };
-        this.dataGenerator.postMessage({'nbOfLines': this.nbOfLines, 'nbOfColumns': this.nbOfColumns});
-      });
+      this.dataGenerator = new Worker('assets/worker/data-generator.js');
+      this.dataGenerator.onmessage = (message: MessageEvent): void => {
+        switch (message.data.context) {
+          case 'update':
+            this.updateProgress(message.data.progress);
+            break;
+          case 'done':
+            this.closeGenerator(message.data.result);
+            break;
+          case 'error':
+            this.closeGenerator();
+            break;
+          default:
+            this.closeGenerator();
+            break;
+        }
+      };
+      this.dataGenerator.postMessage({'nbOfLines': this.nbOfLines, 'nbOfColumns': this.nbOfColumns});
     }
   }
 
-  private closeGenerator(): void {
-    this.ngZone.run(() => {
+  public invertData(): void {
+    this.data = this.data.reverse();
+  }
+
+  public randomizePosition(): void {
+    console.log(this.scrollPosition);
+    this.scrollPosition = Math.floor(Math.random() * this.data.length);
+  }
+
+  private closeGenerator(data?: string[][]): void {
+    this.dataGenerator.terminate();
+    if (data) {
       this.loading = false;
-      this.dataGenerator.terminate();
-    });
+      this.showTable = true;
+      this.data = data;
+    }
   }
 
   private updateProgress(progress: number): void {
@@ -71,7 +75,6 @@ export class AppComponent {
     delete this.nextFrame;
     if (this.loading) {
       this.progress.nativeElement.style.width = progress + '%';
-      this.step.nativeElement.textContent = this.currentStep;
     }
   }
 }

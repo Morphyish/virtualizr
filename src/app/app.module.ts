@@ -5,6 +5,7 @@ import {MatButtonModule, MatInputModule, MatProgressSpinnerModule} from '@angula
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {AppComponent} from './app.component';
+import {VirtualizrModule} from '../virtualizr';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import {AppComponent} from './app.component';
     MatButtonModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    VirtualizrModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
