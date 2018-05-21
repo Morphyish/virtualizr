@@ -104,13 +104,13 @@
     "directive-selector": [
       true,
       "attribute",
-      "chr",
+      "",
       "camelCase"
     ],
     "component-selector": [
       true,
       "element",
-      "vta",
+      "",
       "kebab-case"
     ],
     "use-input-property-decorator": true,
