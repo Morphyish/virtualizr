@@ -58,6 +58,10 @@ export class VirtualizrDirective<T> implements DoCheck, OnChanges {
       throw new Error(
         'The directive virtForOf must always use the virtualizr component as an explicite wrapping container.'
       )
+    } else {
+      this.virtualzrWrapper.onScroll.subscribe((firstIndex: number) => {
+        this.onScroll(firstIndex);
+      });
     }
   }
 
@@ -138,7 +142,22 @@ export class VirtualizrDirective<T> implements DoCheck, OnChanges {
     changes.forEachIdentityChange((record: any) => {
       const viewRef: EmbeddedViewRef<VirtForOfContext<T>> = this._viewContainer.get(record.currentIndex) as EmbeddedViewRef<VirtForOfContext<T>>;
       viewRef.context.$implicit = record.item;
-    })
+    });
+  }
+
+  private onScroll(firstIndex: number): void {
+    const nbOfViews: number = this._viewContainer.length;
+    let view: number = 0;
+    for (let index in this.virtForOf) {
+      if (!this.virtForOf.hasOwnProperty(index)) {continue;}
+      if (parseInt(index) < firstIndex) { continue; }
+      const viewRef: EmbeddedViewRef<VirtForOfContext<T>> = this._viewContainer.get(view) as EmbeddedViewRef<VirtForOfContext<T>>;
+      viewRef.context.$implicit = this.virtForOf[index];
+      view++;
+      if (view >= nbOfViews) {
+        break;
+      }
+    }
   }
 
   private _perViewChange(view: EmbeddedViewRef<VirtForOfContext<T>>, record: IterableChangeRecord<any>): void {

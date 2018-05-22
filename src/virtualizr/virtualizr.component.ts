@@ -1,8 +1,11 @@
 import {Component, ElementRef, EventEmitter, Input, NgZone, OnInit, Output, Renderer2, ViewChild} from '@angular/core';
+import {Observable, Subject} from 'rxjs/index';
 
 export abstract class VirtualizrWrapper {
   public nbOfElements: number;
   public nbOfElementsDisplayed: number;
+
+  public onScroll: Observable<number>;
 
   public setElementSize: (value: number) => void;
 }
@@ -48,6 +51,9 @@ export class VirtualizrComponent implements OnInit {
     return Math.ceil(this.containerSize / this.elementSize) + (this.buffer * 2);
   }
 
+  public onScroll: Observable<number>;
+  private _onScroll: Subject<number> = new Subject<number>();
+
   private buffer: number = 2;
   private wrapperPosition: number = 0;
   private wrapperSize: number = 0;
@@ -59,6 +65,7 @@ export class VirtualizrComponent implements OnInit {
   public constructor(private elm: ElementRef,
                      private ngZone: NgZone,
                      private renderer: Renderer2) {
+    this.onScroll = this._onScroll.asObservable();
   }
 
   public ngOnInit(): void {
@@ -77,7 +84,9 @@ export class VirtualizrComponent implements OnInit {
         const scrollTop: number = ($event.target as HTMLElement).scrollTop;
         this.updateWrapperPosition(scrollTop);
         this._topIndex = Math.max(Math.ceil(scrollTop / this.elementSize) - 2, 0); // do not remove, prevent event loop (see topIndex setter condition)
+        this._onScroll.next(this.topIndex - this.buffer);
         if (this.topIndexChange.observers.length > 0) {
+          // this.topIndex = this._topIndex;
           this.ngZone.run(() => {
             this.topIndex = this._topIndex;
           });
