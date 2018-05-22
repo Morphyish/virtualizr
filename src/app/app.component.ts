@@ -51,7 +51,6 @@ export class AppComponent {
   }
 
   public randomizePosition(): void {
-    console.log(this.scrollPosition);
     this.scrollPosition = Math.floor(Math.random() * this.data.length);
   }
 
