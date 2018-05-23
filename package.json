@@ -4,11 +4,31 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --prod --no-progress --host 0.0.0.0 --port 1337 --disable-host-check",
+    "start": "ng serve --no-progress --host 0.0.0.0 --port 0 --disable-host-check",
+    "start prod": "ng serve --configuration=production --no-progress --host 0.0.0.0 --port 0 --disable-host-check",
     "build": "ng build --prod",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
+  },
+  "configurations": {
+    "production": {
+      "sourceMap": true,
+      "optimization": true,
+      "outputHashing": "all",
+      "extractCss": true,
+      "namedChunks": false,
+      "aot": true,
+      "extractLicenses": true,
+      "vendorChunk": false,
+      "buildOptimizer": true,
+      "fileReplacements": [
+        {
+          "replace": "src/environments/environment.ts",
+          "with": "src/environments/environment.prod.ts"
+        }
+      ]
+    }
   },
   "private": true,
   "dependencies": {
