@@ -64,7 +64,7 @@ export class VirtualizrComponent implements OnInit {
 
   public constructor(private elm: ElementRef,
                      private ngZone: NgZone,
-                     private renderer: Renderer2) {
+                     private renderer: Renderer2,) {
     this.onScroll = this._onScroll.asObservable();
   }
 
@@ -86,7 +86,6 @@ export class VirtualizrComponent implements OnInit {
         this._topIndex = Math.max(Math.ceil(scrollTop / this.elementSize) - 2, 0); // do not remove, prevent event loop (see topIndex setter condition)
         this._onScroll.next(this.topIndex - this.buffer);
         if (this.topIndexChange.observers.length > 0) {
-          // this.topIndex = this._topIndex;
           this.ngZone.run(() => {
             this.topIndex = this._topIndex;
           });
