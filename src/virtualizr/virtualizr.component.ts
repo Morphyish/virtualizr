@@ -23,8 +23,10 @@ export class VirtualizrComponent implements OnInit {
     return this._topIndex;
   }
   public set topIndex(value: number) {
-    this._topIndex = value;
-    this.scrollTo();
+    if (this._topIndex !== value) {
+      this._topIndex = value;
+      this.scrollTo();
+    }
   }
 
   @Input() public autoShrink: boolean = false;
@@ -45,7 +47,7 @@ export class VirtualizrComponent implements OnInit {
   }
 
   public get nbOfElementsDisplayed(): number {
-    return this.nbOfVisibleElements + (this.buffer * 2);
+    return this.nbOfVisibleElements; // + (this.buffer * 2);
   }
 
   public get nbOfVisibleElements(): number {
@@ -57,7 +59,6 @@ export class VirtualizrComponent implements OnInit {
 
   private buffer: number = 2;
   private wrapperPosition: number = 0;
-  private wrapperSize: number = 0;
 
   private noDisplay: boolean = false;
 
@@ -79,60 +80,52 @@ export class VirtualizrComponent implements OnInit {
           this.noDisplay = true;
           this.elm.nativeElement.style.display = 'block';
         }
-        this.updateWrapperSize();
         this.scrollTo();
       });
 
       this.renderer.listen(this.elm.nativeElement, 'scroll', ($event: Event) => {
         const scrollTop: number = ($event.target as HTMLElement).scrollTop;
-        this.updateWrapperPosition(scrollTop);
-        this._topIndex = Math.max(Math.ceil(scrollTop / this.elementSize) - 2, 0); // do not remove, prevent event loop (see topIndex setter condition)
-        const firstIndex: number = Math.max(this.topIndex - this.buffer, 0);
-        const lastIndex: number = Math.min(this.topIndex + this.nbOfVisibleElements + this.buffer, this.nbOfElements);
-        if (this.firstIndex !== firstIndex || this.lastIndex !== lastIndex) {
-          this._onScroll.next({firstIndex, lastIndex});
-          this.firstIndex = firstIndex;
-          this.lastIndex = lastIndex;
+        const topIndex: number = Math.ceil(scrollTop / this.elementSize); // setting to the private variable so we don't trigger another scroll event
+        const lastIndex: number = Math.min(topIndex + (this.nbOfVisibleElements - 1), this.nbOfElements - 1);
+        const firstIndex: number = Math.min(Math.max(topIndex, 0), lastIndex - (this.nbOfVisibleElements - 1));
 
-          if (this.topIndexChange.observers.length > 0) {
-            this.ngZone.run(() => {
-              this.topIndexChange.emit(this._topIndex);
-            });
-          }
+        this._topIndex = topIndex;
+        this.firstIndex = firstIndex > this.buffer ? firstIndex - this.buffer : firstIndex;
+        this.lastIndex = lastIndex < (this.nbOfElements - 1) - this.buffer ? lastIndex + this.buffer : lastIndex;
+
+        this._onScroll.next({
+          firstIndex: this.firstIndex,
+          lastIndex: this.lastIndex,
+        });
+        this.updateWrapperPosition();
+
+        if (this.topIndexChange.observers.length > 0) {
+          this.ngZone.run(() => {
+            this.topIndexChange.emit(this._topIndex);
+          });
         }
       });
     });
   }
 
   public setElementSize(value: number): void {
-    this.ngZone.runOutsideAngular(() => {
-      this.elementSize = value;
-      requestAnimationFrame(() => {
-        this.updateWrapperSize();
-      });
-    });
+    this.elementSize = value;
   }
 
   public updateIndexes(): [number, number] {
-    this.firstIndex = Math.max(this.topIndex - this.buffer, 0);
-    this.lastIndex = Math.min(this.topIndex + this.nbOfVisibleElements + this.buffer, this.nbOfElements);
+    this.firstIndex = Math.max(this._topIndex, 0);
+    this.lastIndex = Math.min(this._topIndex + (this.nbOfVisibleElements - 1), this.nbOfElements - 1);
 
     return [this.firstIndex, this.lastIndex];
   }
 
   private scrollTo(): void {
-    this.elm.nativeElement.scrollTop = (this.topIndex + this.buffer) * this.elementSize;
+    this.elm.nativeElement.scrollTop = this.topIndex * this.elementSize;
   }
 
-  private updateWrapperPosition(top: number): void {
-    const itemoffset: number = Math.floor(top / this.elementSize) - this.buffer;
-    this.wrapperPosition = Math.max(itemoffset, 0) * this.elementSize;
-    this.wrapperPosition = Math.min(this.wrapperPosition, this.totalSize - this.wrapperSize);
+  private updateWrapperPosition(): void {
+    this.wrapperPosition = this.firstIndex * this.elementSize;
+    // this.wrapperPosition = Math.min(this.wrapperPosition, this.totalSize - ((this.lastIndex - this.firstIndex) * this.elementSize));
     this.wrapper.nativeElement.style.transform = 'translateY(' + this.wrapperPosition + 'px)';
-  }
-
-  private updateWrapperSize(): void {
-    this.wrapperSize = (this.lastIndex - this.firstIndex) * this.elementSize;
-    this.wrapper.nativeElement.style.height = this.wrapperSize + 'px';
   }
 }

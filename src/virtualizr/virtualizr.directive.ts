@@ -15,7 +15,7 @@ import {
   SimpleChanges,
   TemplateRef,
   TrackByFunction,
-  ViewContainerRef, ViewRef
+  ViewContainerRef
 } from '@angular/core';
 import {VirtForOfContext} from './classes/virt-for-of-context.class';
 import {VirtRecordViewTuple} from './classes/virt-record-view-tuple.class';
@@ -50,8 +50,8 @@ export class VirtualizrDirective<T> implements DoCheck, OnChanges {
   private _differ: IterableDiffer<T> | null = null;
   private _trackByFn: TrackByFunction<T>;
 
-  private currentFirstIndex: number = 0;
-  private currentLastIndex: number = 0;
+  private currentFirstIndex = 0;
+  private currentLastIndex = 0;
   private nextFrame: number;
 
   public constructor(private _viewContainer: ViewContainerRef,
@@ -122,8 +122,8 @@ export class VirtualizrDirective<T> implements DoCheck, OnChanges {
     });
 
     changes.forEachMovedItem((item: IterableChangeRecord<any>) => {
-      const viewPrevious: ViewRef | null = this._viewContainer.get(item.previousIndex);
-      const viewCurrent: ViewRef | null = this._viewContainer.get(item.currentIndex);
+      const viewPrevious = this._viewContainer.get(item.previousIndex);
+      const viewCurrent = this._viewContainer.get(item.currentIndex);
       if (viewCurrent != null) {
         if (viewPrevious != null) {
           this._viewContainer.move(viewPrevious, item.currentIndex);
@@ -158,42 +158,53 @@ export class VirtualizrDirective<T> implements DoCheck, OnChanges {
     });
   }
 
+  private _perViewChange(view: EmbeddedViewRef<VirtForOfContext<T>>, record: IterableChangeRecord<any>): void {
+    view.context.$implicit = record.item;
+  }
+
   private onScroll(firstIndex: number, lastIndex: number): void {
     const insertTuples: VirtRecordViewTuple<T>[] = [];
 
-    console.log(this._viewContainer.length);
+    if (firstIndex > this.currentLastIndex || lastIndex < this.currentFirstIndex) {
+      this._viewContainer.clear();
 
-    // todo: verify indexes when creating new views. probably an issue.
-    // todo: array start at position 2 (probably something funky with the buffers during the initialization phase ?)
-
-    if (firstIndex > this.currentFirstIndex) {
-      for (let i: number = 0; i < firstIndex - this.currentFirstIndex; i++) {
-        this._viewContainer.remove(i);
-      }
-    } else {
-      for (let i:number = 0; i < this.currentFirstIndex - firstIndex; i++) {
-        const view = this._viewContainer.createEmbeddedView(this._template, new VirtForOfContext<T>(null !, this.virtForOf, -1, -1), i);
-        const tuple = new VirtRecordViewTuple<T>(this.virtForOf[i + firstIndex], view);
+      for (let i = firstIndex; i <= lastIndex; i++) {
+        const view = this._viewContainer.createEmbeddedView(this._template, new VirtForOfContext<T>(null !, this.virtForOf, -1, -1));
+        const tuple = new VirtRecordViewTuple<T>(this.virtForOf[i], view);
         insertTuples.push(tuple);
       }
-    }
-
-    if (lastIndex < this.currentLastIndex) {
-      for (let i: number = 0; i < this.currentLastIndex - lastIndex; i++) {
-        this._viewContainer.remove(i);
-      }
     } else {
-      for (let i: number = 0; i < lastIndex - this.currentLastIndex; i++) {
-        const view = this._viewContainer.createEmbeddedView(this._template, new VirtForOfContext<T>(null !, this.virtForOf, -1, -1), i);
-        const tuple = new VirtRecordViewTuple<T>(this.virtForOf[i + this.currentLastIndex], view);
-        insertTuples.push(tuple);
+
+      if (firstIndex > this.currentFirstIndex) {
+        for (let i = this.currentFirstIndex; i < firstIndex; i++) {
+          this._viewContainer.remove(0);
+        }
+      } else {
+        for (let i = this.currentFirstIndex; i > firstIndex; i--) {
+          const view = this._viewContainer.createEmbeddedView(this._template, new VirtForOfContext<T>(null !, this.virtForOf, -1, -1), 0);
+          const tuple = new VirtRecordViewTuple<T>(this.virtForOf[i - 1], view);
+          insertTuples.push(tuple);
+        }
+      }
+
+      if (lastIndex < this.currentLastIndex) {
+        for (let i = this.currentLastIndex; i > lastIndex; i--) {
+          this._viewContainer.remove();
+        }
+      } else {
+        for (let i = this.currentLastIndex; i < lastIndex; i++) {
+          const view = this._viewContainer.createEmbeddedView(this._template, new VirtForOfContext<T>(null !, this.virtForOf, -1, -1));
+          const tuple = new VirtRecordViewTuple<T>(this.virtForOf[i + 1], view);
+          insertTuples.push(tuple);
+        }
       }
     }
 
     let i = 0;
     const tuplesLength = insertTuples.length;
     for (; i < tuplesLength; i++) {
-      this._perViewChange(insertTuples[i].view, insertTuples[i].record);
+      insertTuples[i].view.context.$implicit = insertTuples[i].record;
+      insertTuples[i].view.detectChanges();
     }
 
     let j = 0;
@@ -204,23 +215,7 @@ export class VirtualizrDirective<T> implements DoCheck, OnChanges {
       viewRef.context.count = viewLength;
     }
 
-    console.log(this._viewContainer.length);
-
     this.currentFirstIndex = firstIndex;
     this.currentLastIndex = lastIndex;
-
-    if (this.nextFrame) {
-      cancelAnimationFrame(this.nextFrame);
-    }
-    this.nextFrame = requestAnimationFrame(this.forceDetection.bind(this));
-  }
-
-  private forceDetection(): void {
-    delete this.nextFrame;
-    this.ref.detectChanges();
-  }
-
-  private _perViewChange(view: EmbeddedViewRef<VirtForOfContext<T>>, record: IterableChangeRecord<any>): void {
-    view.context.$implicit = record.item;
   }
 }

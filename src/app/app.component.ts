@@ -67,13 +67,11 @@ export class AppComponent {
     if (this.nextFrame) {
       cancelAnimationFrame(this.nextFrame);
     }
-    this.nextFrame = requestAnimationFrame(this.frameUpdate.bind(this, progress));
-  }
-
-  private frameUpdate(progress: number): void {
-    delete this.nextFrame;
-    if (this.loading) {
-      this.progress.nativeElement.style.width = progress + '%';
-    }
+    this.nextFrame = requestAnimationFrame(() => {
+      delete this.nextFrame;
+      if (this.loading) {
+        this.progress.nativeElement.style.width = progress + '%';
+      }
+    });
   }
 }
