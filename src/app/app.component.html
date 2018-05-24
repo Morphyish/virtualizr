@@ -22,7 +22,8 @@
   </div>
   <table *ngIf="showTable" style="border-spacing: 0;">
     <!--<tbody virtualizr [(topIndex)]="scrollPosition" style="display: block;height: 400px;overflow: auto;">-->
-    <tbody virtualizr [topIndex]="scrollPosition" style="display: block;height: 400px;overflow: auto;">
+    <!--<tbody virtualizr [topIndex]="scrollPosition" style="display: block;height: 400px;overflow: auto;">-->
+    <tbody virtualizr style="display: block;height: 400px;overflow: auto;">
     <tr *virtFor="let line of data; itemSize: 32;" style="width: 100%;">
       <td *ngFor="let value of line" style="height: 30px;">
         {{value}}

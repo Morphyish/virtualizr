@@ -5,9 +5,10 @@ export abstract class VirtualizrWrapper {
   public nbOfElements: number;
   public nbOfElementsDisplayed: number;
 
-  public onScroll: Observable<number>;
+  public onScroll: Observable<{firstIndex: number, lastIndex: number}>;
 
   public setElementSize: (value: number) => void;
+  public updateIndexes: () => [number, number];
 }
 
 @Component({
@@ -21,13 +22,9 @@ export class VirtualizrComponent implements OnInit {
   public get topIndex(): number {
     return this._topIndex;
   }
-
   public set topIndex(value: number) {
-    if (this._topIndex !== value) {
-      this._topIndex = value;
-      this.scrollTo();
-    }
-    this.topIndexChange.emit(this._topIndex);
+    this._topIndex = value;
+    this.scrollTo();
   }
 
   @Input() public autoShrink: boolean = false;
@@ -48,11 +45,15 @@ export class VirtualizrComponent implements OnInit {
   }
 
   public get nbOfElementsDisplayed(): number {
-    return Math.ceil(this.containerSize / this.elementSize) + (this.buffer * 2);
+    return this.nbOfVisibleElements + (this.buffer * 2);
   }
 
-  public onScroll: Observable<number>;
-  private _onScroll: Subject<number> = new Subject<number>();
+  public get nbOfVisibleElements(): number {
+    return Math.ceil(this.containerSize / this.elementSize);
+  }
+
+  public onScroll: Observable<{firstIndex: number, lastIndex: number}>;
+  private _onScroll: Subject<{firstIndex: number, lastIndex: number}> = new Subject<{firstIndex: number, lastIndex: number}>();
 
   private buffer: number = 2;
   private wrapperPosition: number = 0;
@@ -61,6 +62,8 @@ export class VirtualizrComponent implements OnInit {
   private noDisplay: boolean = false;
 
   private _topIndex: number = 0;
+  private firstIndex: number = 0; // include buffer
+  private lastIndex: number = 0; // include buffer
 
   public constructor(private elm: ElementRef,
                      private ngZone: NgZone,
@@ -84,11 +87,18 @@ export class VirtualizrComponent implements OnInit {
         const scrollTop: number = ($event.target as HTMLElement).scrollTop;
         this.updateWrapperPosition(scrollTop);
         this._topIndex = Math.max(Math.ceil(scrollTop / this.elementSize) - 2, 0); // do not remove, prevent event loop (see topIndex setter condition)
-        this._onScroll.next(this.topIndex - this.buffer);
-        if (this.topIndexChange.observers.length > 0) {
-          this.ngZone.run(() => {
-            this.topIndex = this._topIndex;
-          });
+        const firstIndex: number = Math.max(this.topIndex - this.buffer, 0);
+        const lastIndex: number = Math.min(this.topIndex + this.nbOfVisibleElements + this.buffer, this.nbOfElements);
+        if (this.firstIndex !== firstIndex || this.lastIndex !== lastIndex) {
+          this._onScroll.next({firstIndex, lastIndex});
+          this.firstIndex = firstIndex;
+          this.lastIndex = lastIndex;
+
+          if (this.topIndexChange.observers.length > 0) {
+            this.ngZone.run(() => {
+              this.topIndexChange.emit(this._topIndex);
+            });
+          }
         }
       });
     });
@@ -103,6 +113,13 @@ export class VirtualizrComponent implements OnInit {
     });
   }
 
+  public updateIndexes(): [number, number] {
+    this.firstIndex = Math.max(this.topIndex - this.buffer, 0);
+    this.lastIndex = Math.min(this.topIndex + this.nbOfVisibleElements + this.buffer, this.nbOfElements);
+
+    return [this.firstIndex, this.lastIndex];
+  }
+
   private scrollTo(): void {
     this.elm.nativeElement.scrollTop = (this.topIndex + this.buffer) * this.elementSize;
   }
@@ -115,7 +132,7 @@ export class VirtualizrComponent implements OnInit {
   }
 
   private updateWrapperSize(): void {
-    this.wrapperSize = this.nbOfElementsDisplayed * this.elementSize;
+    this.wrapperSize = (this.lastIndex - this.firstIndex) * this.elementSize;
     this.wrapper.nativeElement.style.height = this.wrapperSize + 'px';
   }
 }
